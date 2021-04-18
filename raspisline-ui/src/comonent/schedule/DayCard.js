@@ -1,6 +1,7 @@
 import React from "react";
 import {
     Button,
+    createMuiTheme,
     makeStyles,
     Paper,
     Table,
@@ -8,13 +9,16 @@ import {
     TableCell,
     TableContainer,
     TableHead,
-    TableRow
+    TableRow,
+    Tooltip
 } from "@material-ui/core";
 import * as PropTypes from 'prop-types';
 import Moment from "moment";
 import EditIcon from '@material-ui/icons/Edit';
+import {ThemeProvider} from '@material-ui/core/styles';
+import {green, orange} from "@material-ui/core/colors";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     cell: {
         paddingRight: '10px',
         paddingLeft: '10px',
@@ -22,8 +26,48 @@ const useStyles = makeStyles((theme) => ({
 
 }))
 
+const assignButtonTheme = createMuiTheme({
+    palette: {
+        primary: green,
+        secondary: orange
+    },
+});
+
+
 const DayCard = (props) => {
     const classes = useStyles();
+
+    const renderAssignButton = (idx) => {
+        if (props.possibilities && props.possibilities[idx]) {
+            let {possibility, cause} = props.possibilities[idx]
+            let color;
+            switch (possibility) {
+                case "RED":
+                    color = "default"
+                    break;
+                case "YELLOW":
+                    color = "secondary"
+                    break;
+                case "GREEN":
+                    color = "primary"
+                    break;
+            }
+            return (
+                <TableCell className={classes.cell}>
+                    <ThemeProvider theme={assignButtonTheme}>
+                        <Tooltip title={cause}>
+                            <div>
+                                <Button disabled={possibility === "RED"} color={color} variant={"contained"}>
+                                    {possibility}
+                                </Button>
+                            </div>
+                        </Tooltip>
+                    </ThemeProvider>
+                </TableCell>
+            )
+        }
+        return null
+    }
 
     return (
         <TableContainer component={Paper}
@@ -31,38 +75,39 @@ const DayCard = (props) => {
             <Table size={"small"}>
                 <TableHead>
                     <TableRow>
-                        <TableCell colSpan={5}>{props.day.format("dddd, DD.MM.YYYY")}</TableCell>
+                        <TableCell colSpan={6}>{props.day.format("dddd, DD.MM.YYYY")}</TableCell>
 
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {props.items.map((row, idx) => (
+                    {props.items.map((item, idx) => (
                         <TableRow key={idx}>
                             <TableCell className={classes.cell} align={"left"} width={'10px'}>
                                 {idx + 1 + "."}
                             </TableCell>
                             <TableCell className={classes.cell}>
-                                {row ? row.disciplineName : null}
+                                {item ? item.disciplineName : null}
                             </TableCell>
                             <TableCell className={classes.cell}>
-                                {row ? row.lessonType : null}
+                                {item ? item.lessonType : null}
                             </TableCell>
                             <TableCell className={classes.cell}>
-                                {row ? row.auditorium : null}
+                                {item ? item.auditorium : null}
                             </TableCell>
                             <TableCell className={classes.cell}>
-                                {row ? row.teacher : null}
+                                {item ? (item.group || item.teacher.fullName) : null}
                             </TableCell>
                             <TableCell className={classes.cell}>
-                                {row
+                                {item
                                     ? <Button variant={"contained"}
                                               size={"small"}
                                               style={{minWidth: '1px', paddingLeft: '4px', paddingRight: '4px'}}
-                                              onClick={() => props.handleEditClick(row)}>
+                                              onClick={() => props.handleEditClick(item)}>
                                         <EditIcon fontSize={"small"}/>
                                     </Button>
                                     : null}
                             </TableCell>
+                            {renderAssignButton(idx)}
                         </TableRow>
                     ))}
                 </TableBody>
@@ -80,10 +125,18 @@ DayCard.propTypes = {
         disciplineName: PropTypes.string,
         lessonType: PropTypes.string,
         auditorium: PropTypes.string,
-        teacher: PropTypes.string
+        teacher: PropTypes.shape({
+            id: PropTypes.number,
+            fullName: PropTypes.string
+        }),
+        group: PropTypes.string
     })),
     day: PropTypes.instanceOf(Moment),
-    handleEditClick: PropTypes.func
+    handleEditClick: PropTypes.func,
+    possibilities: PropTypes.arrayOf(PropTypes.shape({
+        possibility: PropTypes.oneOf(["GREEN", "YELLOW", "RED"]),
+        cause: PropTypes.string
+    }))
 }
 
 

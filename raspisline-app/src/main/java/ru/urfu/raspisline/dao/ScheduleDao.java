@@ -3,9 +3,7 @@ package ru.urfu.raspisline.dao;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import ru.urfu.raspisline.model.schedule.DaySchedule;
-import ru.urfu.raspisline.model.schedule.GroupScheduleItem;
-import ru.urfu.raspisline.model.schedule.ScheduleItem;
+import ru.urfu.raspisline.model.schedule.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,7 +16,7 @@ import static java.util.Collections.nCopies;
 public class ScheduleDao {
     //language=PostgreSQL
     private static final String SELECT_SCHEDULE_ITEMS_FOR_DATE_AND_GROUP = "" +
-            "select s.academic_hour, c.discipline, c.lesson_type, t.full_name, s.auditorium " +
+            "select s.academic_hour, c.discipline, c.lesson_type, t.full_name, t.id as teacher_id, s.auditorium " +
             "from schedule s " +
             "         join curriculum c on s.lesson = c.id " +
             "         left join teacher t on c.teacher = t.id " +
@@ -26,6 +24,15 @@ public class ScheduleDao {
             "  and date = ? " +
             "order by academic_hour";
 
+    //language=PostgreSQL
+    private static final String SELECT_SCHEDULE_ITEMS_FOR_DATE_AND_TEACHER = "" +
+            "select s.academic_hour, c.discipline, c.lesson_type, c.student_group, s.auditorium " +
+            "from schedule s " +
+            "         join curriculum c on s.lesson = c.id " +
+            "         left join teacher t on c.teacher = t.id " +
+            "where t.id = ? " +
+            "  and date = ? " +
+            "order by academic_hour";
 
     //language=PostgreSQL
     private static final String SELECT_BUSY_PAIRS_FOR_DATE_AND_GROUP = "" +
@@ -69,9 +76,28 @@ public class ScheduleDao {
                         rs.getString("discipline"),
                         rs.getString("lesson_type"),
                         rs.getString("auditorium"),
-                        rs.getString("full_name")
+                        new Teacher(rs.getLong("teacher_id"), rs.getString("full_name"))
                 ),
                 group,
+                date
+        );
+
+        items.forEach(scheduleItem -> daySchedule.set(scheduleItem.getPair() - 1, scheduleItem));
+
+        return new DaySchedule(daySchedule);
+    }
+
+    public DaySchedule getScheduleItemForTeacher(final LocalDate date, final Long teacherId) {
+        final var daySchedule = new ArrayList<ScheduleItem>(nCopies(8, null));
+        var items = jdbcTemplate.query(SELECT_SCHEDULE_ITEMS_FOR_DATE_AND_TEACHER,
+                (RowMapper<ScheduleItem>) (rs, rowNum) -> new TeacherScheduleItem(
+                        rs.getInt("academic_hour"),
+                        rs.getString("discipline"),
+                        rs.getString("lesson_type"),
+                        rs.getString("auditorium"),
+                        rs.getString("student_group")
+                ),
+                teacherId,
                 date
         );
 

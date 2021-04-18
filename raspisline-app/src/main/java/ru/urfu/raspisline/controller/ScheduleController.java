@@ -43,7 +43,7 @@ public class ScheduleController {
         if (type.equals("group")) {
             result = groupScheduleService.getWeekScheduleFor(id, firstWeekDay);
         } else if (type.equals("teacher")) {
-            result = teacherScheduleService.getWeekScheduleFor();
+            result = teacherScheduleService.getWeekScheduleFor(id, firstWeekDay);
         } else {
             throw new RuntimeException("Unknown request type");
         }

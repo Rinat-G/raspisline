@@ -17,9 +17,10 @@ import {loadGroups, loadTeachers} from "../../utils/classifierLoaders";
 import * as PropTypes from 'prop-types';
 
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     formControl: {
         minWidth: 200,
+        maxWidth: 200,
     },
 }));
 

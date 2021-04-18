@@ -33,6 +33,8 @@ const SchedulePage = () => {
     const [pickedWeek, setPickedWeek] = useState(currentWeek);
     const [schedule, setSchedule] = useState(undefined);
     const [scheduleLoading, setScheduleLoading] = useState(false);
+    const [possibilitiesLoading, setPossibilitiesLoading] = useState(false);
+    const [possibilities, setPossibilities] = useState(undefined);
 
     useEffect(() => {
         if (!isFirstRender.current && type !== '' && subject !== '') {
@@ -78,8 +80,23 @@ const SchedulePage = () => {
             })
     }
 
+    const handleEditButton = (item) => {
+        setPossibilitiesLoading(true);
+        let {group, teacher, auditorium} = item;
+        if (type === "group") group = subject.name
+        else teacher = subject
+        let firstWeekDay = pickedWeek.start.format(isoFormat)
+
+        ajax("/api/schedule/possibility", {}, 'get', {group, teacherId: teacher.id, auditorium, firstWeekDay})
+            .then(res => {
+                setPossibilities(res.data)
+                setPossibilitiesLoading(false);
+            })
+
+    }
+
     const loader = () => {
-        if (scheduleLoading) {
+        if (scheduleLoading || possibilitiesLoading) {
             return <Loader/>
         }
     }
@@ -111,7 +128,8 @@ const SchedulePage = () => {
                         <DayCard items={schedule ? schedule[index].lessons : undefined}
                                  day={day}
                                  key={day}
-                                 handleEditClick={row => console.log(row)}
+                                 handleEditClick={handleEditButton}
+                                 possibilities={possibilities ? possibilities[index] : undefined}
                         />
                     )}
                 </Grid>
