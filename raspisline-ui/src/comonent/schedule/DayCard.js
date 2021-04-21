@@ -17,6 +17,7 @@ import Moment from "moment";
 import EditIcon from '@material-ui/icons/Edit';
 import {ThemeProvider} from '@material-ui/core/styles';
 import {green, orange} from "@material-ui/core/colors";
+import {ITEM} from "../../utils/PropTypes";
 
 const useStyles = makeStyles(() => ({
     cell: {
@@ -53,12 +54,15 @@ const DayCard = (props) => {
                     break;
             }
             return (
-                <TableCell className={classes.cell}>
+                <TableCell colSpan={5} className={classes.cell}>
                     <ThemeProvider theme={assignButtonTheme}>
                         <Tooltip title={cause}>
-                            <div>
-                                <Button disabled={possibility === "RED"} color={color} variant={"contained"}>
-                                    {possibility}
+                            <div style={{display: 'flex', justifyContent: 'center'}}>
+                                <Button disabled={possibility === "RED"}
+                                        color={color}
+                                        variant={"contained"}
+                                        onClick={() => props.handleAssign(idx)}>
+                                    Назначить
                                 </Button>
                             </div>
                         </Tooltip>
@@ -67,6 +71,40 @@ const DayCard = (props) => {
             )
         }
         return null
+    }
+    const renderScheduleItem = (item, idx) => {
+        if (item) {
+            return (
+                <React.Fragment>
+                    <TableCell className={classes.cell}>
+                        {item.disciplineName}
+                    </TableCell>
+                    <TableCell className={classes.cell}>
+                        {item.lessonType}
+                    </TableCell>
+                    <TableCell className={classes.cell}>
+                        {item.auditorium}
+                    </TableCell>
+                    <TableCell className={classes.cell}>
+                        {(item.group || item.teacher.fullName)}
+                    </TableCell>
+                    <TableCell className={classes.cell}>
+                        <Button variant={"contained"}
+                                size={"small"}
+                                style={{minWidth: '1px', paddingLeft: '4px', paddingRight: '4px'}}
+                                onClick={() => props.handleEditClick(item)}>
+                            <EditIcon fontSize={"small"}/>
+                        </Button>
+                    </TableCell>
+                </React.Fragment>
+            )
+        }
+        if (props.possibilities) {
+            return renderAssignButton(idx)
+        }
+
+        return <TableCell colSpan={5} className={classes.cell}/>
+
     }
 
     return (
@@ -85,29 +123,7 @@ const DayCard = (props) => {
                             <TableCell className={classes.cell} align={"left"} width={'10px'}>
                                 {idx + 1 + "."}
                             </TableCell>
-                            <TableCell className={classes.cell}>
-                                {item ? item.disciplineName : null}
-                            </TableCell>
-                            <TableCell className={classes.cell}>
-                                {item ? item.lessonType : null}
-                            </TableCell>
-                            <TableCell className={classes.cell}>
-                                {item ? item.auditorium : null}
-                            </TableCell>
-                            <TableCell className={classes.cell}>
-                                {item ? (item.group || item.teacher.fullName) : null}
-                            </TableCell>
-                            <TableCell className={classes.cell}>
-                                {item
-                                    ? <Button variant={"contained"}
-                                              size={"small"}
-                                              style={{minWidth: '1px', paddingLeft: '4px', paddingRight: '4px'}}
-                                              onClick={() => props.handleEditClick(item)}>
-                                        <EditIcon fontSize={"small"}/>
-                                    </Button>
-                                    : null}
-                            </TableCell>
-                            {renderAssignButton(idx)}
+                            {renderScheduleItem(item, idx)}
                         </TableRow>
                     ))}
                 </TableBody>
@@ -120,23 +136,14 @@ DayCard.defaultProps = {
 }
 
 DayCard.propTypes = {
-    items: PropTypes.arrayOf(PropTypes.shape({
-        pair: PropTypes.number,
-        disciplineName: PropTypes.string,
-        lessonType: PropTypes.string,
-        auditorium: PropTypes.string,
-        teacher: PropTypes.shape({
-            id: PropTypes.number,
-            fullName: PropTypes.string
-        }),
-        group: PropTypes.string
-    })),
+    items: PropTypes.arrayOf(ITEM),
     day: PropTypes.instanceOf(Moment),
     handleEditClick: PropTypes.func,
     possibilities: PropTypes.arrayOf(PropTypes.shape({
         possibility: PropTypes.oneOf(["GREEN", "YELLOW", "RED"]),
         cause: PropTypes.string
-    }))
+    })),
+    handleAssign: PropTypes.func
 }
 
 

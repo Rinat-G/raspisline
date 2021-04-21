@@ -16,7 +16,7 @@ import static java.util.Collections.nCopies;
 public class ScheduleDao {
     //language=PostgreSQL
     private static final String SELECT_SCHEDULE_ITEMS_FOR_DATE_AND_GROUP = "" +
-            "select s.academic_hour, c.discipline, c.lesson_type, t.full_name, t.id as teacher_id, s.auditorium " +
+            "select s.id as schedule_id, c.id as curriculum_id, s.academic_hour, c.discipline, c.lesson_type, t.full_name, t.id as teacher_id, s.auditorium " +
             "from schedule s " +
             "         join curriculum c on s.lesson = c.id " +
             "         left join teacher t on c.teacher = t.id " +
@@ -26,7 +26,7 @@ public class ScheduleDao {
 
     //language=PostgreSQL
     private static final String SELECT_SCHEDULE_ITEMS_FOR_DATE_AND_TEACHER = "" +
-            "select s.academic_hour, c.discipline, c.lesson_type, c.student_group, s.auditorium " +
+            "select s.id as schedule_id, c.id as curriculum_id, s.academic_hour, c.discipline, c.lesson_type, c.student_group, s.auditorium " +
             "from schedule s " +
             "         join curriculum c on s.lesson = c.id " +
             "         left join teacher t on c.teacher = t.id " +
@@ -62,6 +62,19 @@ public class ScheduleDao {
             "  and date = ? " +
             "order by academic_hour";
 
+    //language=PostgreSQL
+    private static final String INSERT_NEW_SCHEDULE_ITEM = "" +
+            "insert into raspisline.schedule (lesson, date, academic_hour, auditorium) " +
+            "values (?, ?, ?, ?)";
+
+    //language=PostgreSQL
+    private static final String UPDATE_SCHEDULE_ITEM = "" +
+            "update schedule " +
+            "set date= ?, " +
+            "    academic_hour = ?, " +
+            "    auditorium = ? " +
+            "where id = ?";
+
     private final JdbcTemplate jdbcTemplate;
 
     public ScheduleDao(final JdbcTemplate jdbcTemplate) {
@@ -72,6 +85,8 @@ public class ScheduleDao {
         final var daySchedule = new ArrayList<ScheduleItem>(nCopies(8, null));
         var items = jdbcTemplate.query(SELECT_SCHEDULE_ITEMS_FOR_DATE_AND_GROUP,
                 (RowMapper<ScheduleItem>) (rs, rowNum) -> new GroupScheduleItem(
+                        rs.getLong("schedule_id"),
+                        rs.getLong("curriculum_id"),
                         rs.getInt("academic_hour"),
                         rs.getString("discipline"),
                         rs.getString("lesson_type"),
@@ -91,6 +106,8 @@ public class ScheduleDao {
         final var daySchedule = new ArrayList<ScheduleItem>(nCopies(8, null));
         var items = jdbcTemplate.query(SELECT_SCHEDULE_ITEMS_FOR_DATE_AND_TEACHER,
                 (RowMapper<ScheduleItem>) (rs, rowNum) -> new TeacherScheduleItem(
+                        rs.getLong("schedule_id"),
+                        rs.getLong("curriculum_id"),
                         rs.getInt("academic_hour"),
                         rs.getString("discipline"),
                         rs.getString("lesson_type"),
@@ -130,6 +147,26 @@ public class ScheduleDao {
                 (rs, rowNum) -> rs.getInt("academic_hour"),
                 auditorium,
                 date
+        );
+    }
+
+    public void insertNewScheduleItem(Long curriculumId, LocalDate date, Integer academicHour, String auditorium) {
+        jdbcTemplate.update(
+                INSERT_NEW_SCHEDULE_ITEM,
+                curriculumId,
+                date,
+                academicHour,
+                auditorium
+        );
+    }
+
+    public void editScheduleItem(Long scheduleId, LocalDate date, Integer academicHour, String auditorium) {
+        jdbcTemplate.update(
+                UPDATE_SCHEDULE_ITEM,
+                date,
+                academicHour,
+                auditorium,
+                scheduleId
         );
     }
 }

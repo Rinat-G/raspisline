@@ -15,6 +15,8 @@ import {
 } from "@material-ui/core";
 import {loadGroups, loadTeachers} from "../../utils/classifierLoaders";
 import * as PropTypes from 'prop-types';
+import PickItem from "./PickItem";
+import {ITEM} from "../../utils/PropTypes";
 
 
 const useStyles = makeStyles(() => ({
@@ -31,6 +33,7 @@ const SidePanel = (props) => {
     const [groups, setGroups] = React.useState([]);
     const [teachers, setTeachers] = React.useState([]);
 
+
     const handleSubjectTypeChange = (event) => {
         const type = event.target.value;
         if (type === 'group') {
@@ -40,12 +43,33 @@ const SidePanel = (props) => {
         }
         props.onSubjectTypeChange(type)
         setType(type);
+        setSubject('');
+        props.setMode(undefined);
+        props.setItem({});
     };
 
     const handleSubjectChange = (event) => {
         setSubject(event.target.value);
+        props.setMode(undefined);
+        props.setItem({});
         props.onSubjectChange(event.target.value);
     };
+
+    const onDisciplineChange = (item) => {
+        props.setItem(_.assign({}, {disciplineName: item}))
+    }
+
+    const onLessonTypeChange = (lessonType, teacher, curriculumId) => {
+        props.setItem((prevState) => {
+            return _.assign({}, prevState, {lessonType, teacher, curriculumId})
+        })
+    }
+
+    const onAuditoriumChange = (auditorium) => {
+        props.setItem((prevState) => {
+            return _.assign({}, prevState, {auditorium})
+        })
+    }
 
     function renderMenuItems() {
         if (type === 'group') {
@@ -62,35 +86,62 @@ const SidePanel = (props) => {
     }
 
     const renderNewItemButton = () => {
-        if (!subject) {
+        if (!subject || props.mode) {
             return null;
         }
         return (
-            <React.Fragment>
+            <Grid item>
                 <Typography>
                     Выберите занятие которое хотите изменить или
                 </Typography>
-                <Button variant={"contained"}>Создайте новое</Button>
-            </React.Fragment>
+                <Button variant={"contained"} onClick={() => props.setMode('new')}>Создайте новое</Button>
+            </Grid>
         )
     }
+
+    const renderItemSelector = () => {
+        if (props.mode) {
+            return <PickItem mode={props.mode}
+                             item={props.item}
+                             onDisciplineChange={onDisciplineChange}
+                             onLessonTypeChange={onLessonTypeChange}
+                             onAuditoriumChange={onAuditoriumChange}
+                             resourceType={type}
+                             resource={subject}/>
+        }
+        return null;
+    }
+
+    const renderCancelButton = () => {
+        if (props.mode) {
+            return (
+                <Grid item>
+                    <Button variant={"contained"} onClick={props.onCancel}>Отмена</Button>
+                </Grid>
+            )
+        }
+    }
+
+
     const renderSubjectSelector = () => {
         if (!type) {
             return null;
         }
         let label = type === 'group' ? 'Группа' : 'Преподаватель'
         return (
-            <FormControl variant={"outlined"} className={classes.formControl}>
-                <InputLabel id="subject-label">{label}</InputLabel>
-                <Select
-                    labelId="subject-label"
-                    value={subject}
-                    onChange={handleSubjectChange}
-                    label={label}
-                >
-                    {renderMenuItems()}
-                </Select>
-            </FormControl>
+            <Grid item>
+                <FormControl variant={"outlined"} className={classes.formControl}>
+                    <InputLabel id="subject-label">{label}</InputLabel>
+                    <Select
+                        labelId="subject-label"
+                        value={subject}
+                        onChange={handleSubjectChange}
+                        label={label}
+                    >
+                        {renderMenuItems()}
+                    </Select>
+                </FormControl>
+            </Grid>
         )
     }
 
@@ -114,13 +165,10 @@ const SidePanel = (props) => {
                         </RadioGroup>
                     </FormControl>
                 </Grid>
-                <Grid item>
-                    {renderSubjectSelector()}
-                </Grid>
-                <Grid item>
-                    {renderNewItemButton()}
-                </Grid>
-
+                {renderSubjectSelector()}
+                {renderNewItemButton()}
+                {renderItemSelector()}
+                {renderCancelButton()}
             </Grid>
         </Box>
     )
@@ -128,6 +176,11 @@ const SidePanel = (props) => {
 
 SidePanel.propTypes = {
     onSubjectTypeChange: PropTypes.func,
-    onSubjectChange: PropTypes.func
+    onSubjectChange: PropTypes.func,
+    mode: PropTypes.string,
+    item: ITEM,
+    setMode: PropTypes.func,
+    setItem: PropTypes.func,
+    onCancel: PropTypes.func,
 }
 export default SidePanel;

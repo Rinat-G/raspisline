@@ -42,7 +42,8 @@ CREATE TABLE schedule
     CONSTRAINT schedule_lesson_fk FOREIGN KEY (lesson) references curriculum (id) ON DELETE SET NULL,
     CONSTRAINT schedule_auditorium_fk FOREIGN KEY (auditorium) references auditorium (name) ON DELETE SET NULL,
     CONSTRAINT schedule_non_duplicate_by_aud UNIQUE (date, academic_hour, auditorium),
-    CONSTRAINT schedule_non_duplicate_by_lesson UNIQUE (date, academic_hour, lesson)
+    CONSTRAINT schedule_non_duplicate_by_lesson UNIQUE (date, academic_hour, lesson),
+    CONSTRAINT academic_hour_domain CHECK ( academic_hour > 0 AND academic_hour < 9)
 );
 
 CREATE TABLE department

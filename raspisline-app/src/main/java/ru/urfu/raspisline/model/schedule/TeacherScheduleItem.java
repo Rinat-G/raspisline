@@ -8,12 +8,16 @@ import lombok.Value;
 public class TeacherScheduleItem extends ScheduleItem {
     String group;
 
-    public TeacherScheduleItem(final Integer pair,
-                               final String disciplineName,
-                               final String lessonType,
-                               final String auditorium,
-                               final String group) {
-        super(pair, disciplineName, lessonType, auditorium);
+    public TeacherScheduleItem(
+            final Long id,
+            final Long curriculumId,
+            final Integer pair,
+            final String disciplineName,
+            final String lessonType,
+            final String auditorium,
+            final String group
+    ) {
+        super(id, curriculumId, pair, disciplineName, lessonType, auditorium);
         this.group = group;
     }
 }

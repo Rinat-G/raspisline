@@ -36,6 +36,9 @@ const SchedulePage = () => {
     const [possibilitiesLoading, setPossibilitiesLoading] = useState(false);
     const [possibilities, setPossibilities] = useState(undefined);
 
+    const [mode, setMode] = useState(undefined);
+    const [item, setItem] = useState({});
+
     useEffect(() => {
         if (!isFirstRender.current && type !== '' && subject !== '') {
             loadSchedule();
@@ -45,6 +48,13 @@ const SchedulePage = () => {
     useEffect(() => {
         isFirstRender.current = false
     }, [])
+
+    useEffect(() => {
+        if (item.auditorium) {
+            loadPossibilities(item)
+        }
+    }, [item, pickedWeek]);
+
 
     const onChange = (week) => {
         setPickedWeek(week)
@@ -62,10 +72,12 @@ const SchedulePage = () => {
 
     const onSubjectTypeChange = (selectedType) => {
         type = selectedType
+        setPossibilities(undefined)
     }
 
     const onSubjectChange = (selectedSubject) => {
         subject = selectedSubject
+        setPossibilities(undefined)
         loadSchedule();
     }
 
@@ -81,6 +93,17 @@ const SchedulePage = () => {
     }
 
     const handleEditButton = (item) => {
+        setMode('edit')
+        setItem(item)
+    }
+
+    const onCancel = () => {
+        setMode(undefined);
+        setItem({})
+        setPossibilities(undefined)
+    }
+
+    const loadPossibilities = (item) => {
         setPossibilitiesLoading(true);
         let {group, teacher, auditorium} = item;
         if (type === "group") group = subject.name
@@ -95,6 +118,43 @@ const SchedulePage = () => {
 
     }
 
+    const handleAssign = (date, pair) => {
+        let promise;
+        if (mode === 'new') {
+            promise = ajax(
+                '/api/schedule/new',
+                {
+                    curriculumItemId: item.curriculumId,
+                    date: date.format(isoFormat),
+                    academicHour: pair + 1,
+                    auditorium: item.auditorium
+                },
+                'post')
+
+        }
+
+        if (mode === 'edit') {
+            promise = ajax(
+                '/api/schedule/edit',
+                {
+                    scheduleId: item.scheduleId,
+                    date: date.format(isoFormat),
+                    academicHour: pair + 1,
+                    auditorium: item.auditorium
+                },
+                'post')
+
+        }
+
+        promise.then(res => {
+            console.log(res)
+            onCancel()
+            loadSchedule()
+
+        }).catch(err => console.log(err))
+
+    }
+
     const loader = () => {
         if (scheduleLoading || possibilitiesLoading) {
             return <Loader/>
@@ -106,7 +166,14 @@ const SchedulePage = () => {
             {loader()}
             <Drawer variant={"permanent"} className={classes.drawer}>
                 <Box className={classes.drawer}>
-                    <SidePanel onSubjectTypeChange={onSubjectTypeChange} onSubjectChange={onSubjectChange}/>
+                    <SidePanel onSubjectTypeChange={onSubjectTypeChange}
+                               onSubjectChange={onSubjectChange}
+                               mode={mode}
+                               item={item}
+                               setMode={setMode}
+                               setItem={setItem}
+                               onCancel={onCancel}
+                    />
                 </Box>
             </Drawer>
             <Box p={1} className={classes.app}>
@@ -130,6 +197,7 @@ const SchedulePage = () => {
                                  key={day}
                                  handleEditClick={handleEditButton}
                                  possibilities={possibilities ? possibilities[index] : undefined}
+                                 handleAssign={(pair) => handleAssign(day, pair)}
                         />
                     )}
                 </Grid>

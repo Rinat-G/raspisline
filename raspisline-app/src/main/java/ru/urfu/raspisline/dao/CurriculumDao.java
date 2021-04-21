@@ -3,6 +3,8 @@ package ru.urfu.raspisline.dao;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.urfu.raspisline.model.CurriculumItem;
+import ru.urfu.raspisline.model.schedule.CurriculumItemForSchedule;
+import ru.urfu.raspisline.model.schedule.Teacher;
 
 import java.util.List;
 
@@ -17,6 +19,13 @@ public class CurriculumDao {
             "SELECT curriculum.id, student_group, discipline, lesson_type, academic_hours, full_name " +
             "FROM curriculum " +
             "LEFT JOIN teacher t on curriculum.teacher = t.id";
+
+    //language=PostgreSQL
+    private final static String GET_CURRICULUM_ITEMS_FOR_GROUP = "" +
+            "select c.id, c.student_group, c.discipline, c.lesson_type, t.id as teacher_id, t.full_name  " +
+            "from curriculum c  " +
+            "         join teacher t on t.id = c.teacher  " +
+            "where student_group = ?";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -42,7 +51,23 @@ public class CurriculumDao {
         );
     }
 
-//    public List<>
+    public List<CurriculumItemForSchedule> getAllCurriculumItemsForGroup(String groupName) {
+        return jdbcTemplate.query(
+                GET_CURRICULUM_ITEMS_FOR_GROUP,
+                (rs, rowNum) -> new CurriculumItemForSchedule(
+                        rs.getLong("id"),
+                        rs.getString("student_group"),
+                        rs.getString("discipline"),
+                        rs.getString("lesson_type"),
+                        new Teacher(
+                                rs.getLong("teacher_id"),
+                                rs.getString("full_name")
+                        )
+                ),
+                groupName
+
+        );
+    }
 
 
 }

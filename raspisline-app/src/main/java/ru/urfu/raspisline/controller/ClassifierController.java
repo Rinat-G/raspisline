@@ -3,14 +3,8 @@ package ru.urfu.raspisline.controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.urfu.raspisline.dao.DisciplineDao;
-import ru.urfu.raspisline.dao.GroupDao;
-import ru.urfu.raspisline.dao.LessonTypeDao;
-import ru.urfu.raspisline.dao.TeacherDao;
-import ru.urfu.raspisline.model.Discipline;
-import ru.urfu.raspisline.model.StudentGroup;
-import ru.urfu.raspisline.model.Teacher;
-import ru.urfu.raspisline.model.TeacherWorkload;
+import ru.urfu.raspisline.dao.*;
+import ru.urfu.raspisline.model.*;
 
 import java.util.List;
 
@@ -22,12 +16,20 @@ public class ClassifierController {
     private final GroupDao groupDao;
     private final DisciplineDao disciplineDao;
     private final LessonTypeDao lessonTypeDao;
+    private final AuditoriumDao auditoriumDao;
 
-    public ClassifierController(final TeacherDao teacherDao, final GroupDao groupDao, DisciplineDao disciplineDao, LessonTypeDao lessonTypeDao) {
+    public ClassifierController(
+            final TeacherDao teacherDao,
+            final GroupDao groupDao,
+            DisciplineDao disciplineDao,
+            LessonTypeDao lessonTypeDao,
+            AuditoriumDao auditoriumDao
+    ) {
         this.teacherDao = teacherDao;
         this.groupDao = groupDao;
         this.disciplineDao = disciplineDao;
         this.lessonTypeDao = lessonTypeDao;
+        this.auditoriumDao = auditoriumDao;
     }
 
     @GetMapping(value = "/teachers")
@@ -55,4 +57,8 @@ public class ClassifierController {
         return lessonTypeDao.getAllLessonTypes();
     }
 
+    @GetMapping(value = "/auditoriums")
+    public List<Auditorium> getAuditoriums() {
+        return auditoriumDao.getAllAuditoriums();
+    }
 }
