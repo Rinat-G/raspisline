@@ -64,7 +64,7 @@ public class ScheduleDao {
 
     //language=PostgreSQL
     private static final String INSERT_NEW_SCHEDULE_ITEM = "" +
-            "insert into raspisline.schedule (lesson, date, academic_hour, auditorium) " +
+            "insert into schedule (lesson, date, academic_hour, auditorium) " +
             "values (?, ?, ?, ?)";
 
     //language=PostgreSQL
