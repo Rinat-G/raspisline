@@ -1,131 +1,148 @@
 import React from "react";
 import {
-    Button,
-    createMuiTheme,
+    Divider,
+    List,
+    ListItem,
+    ListItemSecondaryAction,
+    ListItemText,
+    ListSubheader,
     makeStyles,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
     Tooltip
 } from "@material-ui/core";
 import * as PropTypes from 'prop-types';
 import Moment from "moment";
-import {ThemeProvider} from '@material-ui/core/styles';
-import {green, orange} from "@material-ui/core/colors";
 import {ITEM} from "../../utils/PropTypes";
 import ItemMenu from "./ItemMenu";
 
-const useStyles = makeStyles(() => ({
-    cell: {
-        paddingRight: '10px',
-        paddingLeft: '10px',
+const useStyles = makeStyles((theme) => ({
+    root: {
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: theme.shadows[1],
+        borderRadius: theme.shape.borderRadius,
+        width: "100%",
+        maxWidth: "475px",
+        minWidth: "250px",
+        margin: "20px",
+        paddingBottom: "0px"
     },
-
+    listItem: {
+        minHeight: "76px",
+        padding: '0px 10px 0px 10px'
+    },
+    listItemGray: {
+        minHeight: "76px",
+        padding: '0px 10px 0px 10px',
+        backgroundColor: theme.palette.grey[400],
+    },
+    listItemGreen: {
+        minHeight: "76px",
+        padding: '0px 10px 0px 10px',
+        backgroundColor: theme.palette.success.light,
+        "&:hover": {
+            backgroundColor: theme.palette.success.main,
+        }
+    },
+    listItemYellow: {
+        minHeight: "76px",
+        padding: '0px 10px 0px 10px',
+        backgroundColor: theme.palette.warning.light,
+        "&:hover": {
+            backgroundColor: theme.palette.warning.main,
+        }
+    },
 }))
-
-const assignButtonTheme = createMuiTheme({
-    palette: {
-        primary: green,
-        secondary: orange
-    },
-});
-
 
 const DayCard = (props) => {
     const classes = useStyles();
 
-
-    const renderAssignButton = (idx) => {
-        if (props.possibilities && props.possibilities[idx]) {
-            let {possibility, cause} = props.possibilities[idx]
-            let color;
-            switch (possibility) {
-                case "RED":
-                    color = "default"
-                    break;
-                case "YELLOW":
-                    color = "secondary"
-                    break;
-                case "GREEN":
-                    color = "primary"
-                    break;
-            }
-            return (
-                <TableCell colSpan={5} className={classes.cell}>
-                    <ThemeProvider theme={assignButtonTheme}>
-                        <Tooltip title={cause}>
-                            <div style={{display: 'flex', justifyContent: 'center'}}>
-                                <Button disabled={possibility === "RED"}
-                                        color={color}
-                                        variant={"contained"}
-                                        onClick={() => props.handleAssign(idx)}>
-                                    Назначить
-                                </Button>
-                            </div>
-                        </Tooltip>
-                    </ThemeProvider>
-                </TableCell>
-            )
+    const renderText = (item, idx) => {
+        if (item) {
+            return idx + 1 + ". " + item.disciplineName
         }
-        return null
+        return idx + 1 + ". "
     }
-    const renderScheduleItem = (item, idx) => {
+
+    const renderSecondaryText = (item, idx) => {
         if (item) {
             return (
                 <React.Fragment>
-                    <TableCell className={classes.cell}>
-                        {item.disciplineName}
-                    </TableCell>
-                    <TableCell className={classes.cell}>
-                        {item.lessonType}
-                    </TableCell>
-                    <TableCell className={classes.cell}>
-                        {item.auditorium}
-                    </TableCell>
-                    <TableCell className={classes.cell}>
-                        {(item.group || item.teacher.fullName)}
-                    </TableCell>
-                    <TableCell className={classes.cell}>
-                        <ItemMenu handleEditClick={() => props.handleEditClick(item)}
-                                  handleDeleteClick={() => props.handleDeleteClick(item)}/>
-                    </TableCell>
+                    {item.lessonType + ". Ауд: " + item.auditorium}
+                    <br/>
+                    {(item.group || item.teacher.fullName)}
                 </React.Fragment>
             )
         }
-        if (props.possibilities) {
-            return renderAssignButton(idx)
+        return ""
+    }
+
+    const renderContextButton = (item) => {
+        if (item) {
+            return (
+                <ListItemSecondaryAction>
+                    <ItemMenu handleEditClick={() => props.handleEditClick(item)}
+                              handleDeleteClick={() => props.handleDeleteClick(item)}/>
+                </ListItemSecondaryAction>
+            )
         }
+    }
 
-        return <TableCell colSpan={5} className={classes.cell}/>
-
+    const renderItem = (item, idx) => {
+        if (item || !props.possibilities || !props.possibilities[idx]) {
+            return (
+                <React.Fragment key={idx}>
+                    <Divider/>
+                    <ListItem className={classes.listItem}>
+                        <ListItemText primary={renderText(item, idx)} secondary={renderSecondaryText(item, idx)}/>
+                        {renderContextButton(item)}
+                    </ListItem>
+                </React.Fragment>
+            )
+        }
+        if (props.possibilities[idx] && !item) {
+            let {possibility, cause} = props.possibilities[idx]
+            let className;
+            switch (possibility) {
+                case "RED":
+                    className = classes.listItemGray
+                    break;
+                case "YELLOW":
+                    className = classes.listItemYellow
+                    break;
+                case "GREEN":
+                    className = classes.listItemGreen
+                    break;
+            }
+            return (
+                <React.Fragment key={idx}>
+                    <Divider/>
+                    <Tooltip title={cause}>
+                        <div>
+                            <ListItem button className={className}
+                                      disabled={possibility === "RED"}
+                                      onClick={() => props.handleAssign(idx)}>
+                                <ListItemText primary={idx + 1 + ". Назначить"}
+                                              secondary={renderSecondaryText(item, idx)}
+                                />
+                            </ListItem>
+                        </div>
+                    </Tooltip>
+                </React.Fragment>
+            )
+        }
     }
 
     return (
-        <TableContainer component={Paper}
-                        style={{maxWidth: "475px", minWidth: "250px", margin: "20px"}}>
-            <Table size={"small"}>
-                <TableHead>
-                    <TableRow>
-                        <TableCell colSpan={6}>{props.day.format("dddd, DD.MM.YYYY")}</TableCell>
+        <List className={classes.root} subheader={
+            <ListSubheader component="div" id="nested-list-subheader">
+                {props.day.format("dddd, DD.MM.YYYY")}
+            </ListSubheader>
+        }>
+            {props.items.map((item, idx) => (
+                renderItem(item, idx)
 
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {props.items.map((item, idx) => (
-                        <TableRow key={idx}>
-                            <TableCell className={classes.cell} align={"left"} width={'10px'}>
-                                {idx + 1 + "."}
-                            </TableCell>
-                            {renderScheduleItem(item, idx)}
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+            ))}
+
+        </List>
     )
 }
 DayCard.defaultProps = {
