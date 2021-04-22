@@ -12,7 +12,7 @@ const useStyles = makeStyles(() => ({
     },
 }));
 
-const PickItem = props => {
+const PickItemForTeacher = props => {
     const classes = useStyles();
 
     const [resourceCurriculum, setResourceCurriculum] = useState([]);
@@ -20,16 +20,17 @@ const PickItem = props => {
 
 
     useEffect(() => {
-        if (props.resourceType === 'group') {
-            ajax("/api/curriculum/group/" + props.resource.name)
-                .then(res => setResourceCurriculum(res.data))
-        }
+        ajax("/api/curriculum/teacher/" + props.resource.id)
+            .then(res => setResourceCurriculum(res.data))
     }, [])
 
     useEffect(() => {
         loadAuditoriums(setAuditoriums)
     }, [])
 
+    const handleGroupChange = (event) => {
+        props.onGroupChange(event.target.value)
+    }
 
     const handleDisciplineChange = (event) => {
         props.onDisciplineChange(event.target.value)
@@ -46,29 +47,50 @@ const PickItem = props => {
     const handleAuditoriumChange = (event) => {
         props.onAuditoriumChange(event.target.value)
     }
+    const getUniqDisciplinesFromCurriculumFilteringByGroup = () => {
+        return _.uniq(resourceCurriculum.filter(item => item.group === props.item.group).map(item => item.discipline))
+    }
 
-    const curriculumFilterByDiscAndLessonType = () => {
-        return resourceCurriculum.filter(item => item.discipline === props.item.disciplineName && item.lessonType === props.item.lessonType)
+    const curriculumFilterByDisciplineAndGroup = () => {
+        return resourceCurriculum.filter(item => item.discipline === props.item.disciplineName && item.group === props.item.group)
     }
 
     return (
         <React.Fragment>
             <Grid item>
                 <FormControl variant={"outlined"} className={classes.formControl} disabled={props.mode === "edit"}>
-                    <InputLabel id="subject-label">{"Предмет"}</InputLabel>
+                    <InputLabel id="subject-label">{"Группа"}</InputLabel>
                     <Select
                         labelId="subject-label"
-                        value={props.item ? props.item.disciplineName : ''}
-                        onChange={handleDisciplineChange}
-                        label={"Предмет"}
+                        value={props.item ? props.item.group : ''}
+                        onChange={handleGroupChange}
+                        label={"Группа"}
                     >
-                        {_.uniq(resourceCurriculum.map(item => item.discipline)).map(discipline => {
-                            return <MenuItem value={discipline}
-                                             key={discipline}>{discipline}</MenuItem>
+                        {_.uniq(resourceCurriculum.map(item => item.group)).map(group => {
+                            return <MenuItem value={group}
+                                             key={group}>{group}</MenuItem>
                         })}
                     </Select>
                 </FormControl>
             </Grid>
+            {props.item.group
+                ? <Grid item>
+                    <FormControl variant={"outlined"} className={classes.formControl} disabled={props.mode === "edit"}>
+                        <InputLabel id="subject-label">{"Предмет"}</InputLabel>
+                        <Select
+                            labelId="subject-label"
+                            value={props.item ? props.item.disciplineName : ''}
+                            onChange={handleDisciplineChange}
+                            label={"Предмет"}
+                        >
+                            {getUniqDisciplinesFromCurriculumFilteringByGroup().map(discipline => {
+                                return <MenuItem value={discipline}
+                                                 key={discipline}>{discipline}</MenuItem>
+                            })}
+                        </Select>
+                    </FormControl>
+                </Grid>
+                : null}
             {props.item.disciplineName
                 ? <Grid item>
                     <FormControl variant={"outlined"} className={classes.formControl} disabled={props.mode === "edit"}>
@@ -79,7 +101,7 @@ const PickItem = props => {
                             onChange={handleLessonTypeChange}
                             label={"Тип занятия"}
                         >
-                            {resourceCurriculum.filter(item => item.discipline === props.item.disciplineName).map(curriculumItem => {
+                            {curriculumFilterByDisciplineAndGroup().map(curriculumItem => {
                                 return <MenuItem value={curriculumItem.lessonType}
                                                  key={curriculumItem.lessonType}>{curriculumItem.lessonType}</MenuItem>
                             })}
@@ -87,28 +109,10 @@ const PickItem = props => {
                     </FormControl>
                 </Grid>
                 : null}
+
             {props.item.lessonType
                 ? <Grid item>
-                    <FormControl variant={"outlined"} className={classes.formControl} disabled>
-                        <InputLabel id="subject-label">{"Преподаватель"}</InputLabel>
-                        <Select
-                            labelId="subject-label"
-                            value={curriculumFilterByDiscAndLessonType()[0] ? curriculumFilterByDiscAndLessonType()[0].teacher : ''}
-                            onChange={handleLessonTypeChange}
-                            label={"Преподаватель"}
-                        >
-                            {curriculumFilterByDiscAndLessonType().map(curriculumItem => {
-                                return <MenuItem value={curriculumItem.teacher}
-                                                 key={curriculumItem.teacher.fullName}>{curriculumItem.teacher.fullName}</MenuItem>
-                            })}
-                        </Select>
-                    </FormControl>
-                </Grid>
-                : null}
-
-            {props.item.teacher
-                ? <Grid item>
-                    <FormControl variant={"outlined"} className={classes.formControl} >
+                    <FormControl variant={"outlined"} className={classes.formControl}>
                         <InputLabel id="subject-label">{"Аудитория"}</InputLabel>
                         <Select
                             labelId="subject-label"
@@ -128,7 +132,7 @@ const PickItem = props => {
     )
 }
 
-PickItem.propTypes = {
+PickItemForTeacher.propTypes = {
     mode: PropTypes.string,
     resourceType: PropTypes.oneOf(['group', 'teacher']),
     resource: PropTypes.oneOfType([
@@ -140,8 +144,9 @@ PickItem.propTypes = {
     ]),
 
     item: ITEM,
+    onGroupChange: PropTypes.func,
     onDisciplineChange: PropTypes.func,
     onLessonTypeChange: PropTypes.func,
     onAuditoriumChange: PropTypes.func
 }
-export default PickItem;
+export default PickItemForTeacher;

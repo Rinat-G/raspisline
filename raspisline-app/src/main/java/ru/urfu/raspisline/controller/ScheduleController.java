@@ -101,4 +101,16 @@ public class ScheduleController {
 
         return ResponseEntity.ok("success");
     }
+
+    @PostMapping(value = "/delete/{id}")
+    public ResponseEntity<String> deleteScheduleItem(@PathVariable Long id) {
+        try {
+            scheduleDao.deleteScheduleItem(id);
+        } catch (Exception e) {
+
+            return ResponseEntity.status(500).body(e.getMessage());
+        }
+
+        return ResponseEntity.ok("success");
+    }
 }

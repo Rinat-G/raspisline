@@ -5,7 +5,7 @@ import lombok.Value;
 @Value
 public class CurriculumItemForSchedule {
     Long id;
-    String studentGroup;
+    String group;
     String discipline;
     String lessonType;
     Teacher teacher;

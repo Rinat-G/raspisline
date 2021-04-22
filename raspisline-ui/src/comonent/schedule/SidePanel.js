@@ -17,6 +17,7 @@ import {loadGroups, loadTeachers} from "../../utils/classifierLoaders";
 import * as PropTypes from 'prop-types';
 import PickItem from "./PickItem";
 import {ITEM} from "../../utils/PropTypes";
+import PickItemForTeacher from "./PickItemForTeacher";
 
 
 const useStyles = makeStyles(() => ({
@@ -55,8 +56,18 @@ const SidePanel = (props) => {
         props.onSubjectChange(event.target.value);
     };
 
-    const onDisciplineChange = (item) => {
-        props.setItem(_.assign({}, {disciplineName: item}))
+    const onGroupChange = (group) => {
+        props.setItem(_.assign({}, {group: group}))
+    }
+
+    const onDisciplineChange = (discipline) => {
+        if (type === 'teacher') {
+            props.setItem((prevState) => {
+                return _.assign({}, prevState, {disciplineName: discipline})
+            })
+            return;
+        }
+        props.setItem(_.assign({}, {disciplineName: discipline}))
     }
 
     const onLessonTypeChange = (lessonType, teacher, curriculumId) => {
@@ -101,13 +112,26 @@ const SidePanel = (props) => {
 
     const renderItemSelector = () => {
         if (props.mode) {
-            return <PickItem mode={props.mode}
-                             item={props.item}
-                             onDisciplineChange={onDisciplineChange}
-                             onLessonTypeChange={onLessonTypeChange}
-                             onAuditoriumChange={onAuditoriumChange}
-                             resourceType={type}
-                             resource={subject}/>
+            if (type === 'group') {
+                return <PickItem mode={props.mode}
+                                 item={props.item}
+                                 onGroupChange={onGroupChange}
+                                 onDisciplineChange={onDisciplineChange}
+                                 onLessonTypeChange={onLessonTypeChange}
+                                 onAuditoriumChange={onAuditoriumChange}
+                                 resourceType={type}
+                                 resource={subject}/>
+            }
+            if (type === 'teacher') {
+                return <PickItemForTeacher mode={props.mode}
+                                           item={props.item}
+                                           onGroupChange={onGroupChange}
+                                           onDisciplineChange={onDisciplineChange}
+                                           onLessonTypeChange={onLessonTypeChange}
+                                           onAuditoriumChange={onAuditoriumChange}
+                                           resourceType={type}
+                                           resource={subject}/>
+            }
         }
         return null;
     }

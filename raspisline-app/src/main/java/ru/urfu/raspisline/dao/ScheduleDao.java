@@ -75,6 +75,10 @@ public class ScheduleDao {
             "    auditorium = ? " +
             "where id = ?";
 
+    //language=PostgreSQL
+    private static final String DELETE_SCHEDULE_ITEM = "" +
+            "delete from schedule where id = ?";
+
     private final JdbcTemplate jdbcTemplate;
 
     public ScheduleDao(final JdbcTemplate jdbcTemplate) {
@@ -166,6 +170,13 @@ public class ScheduleDao {
                 date,
                 academicHour,
                 auditorium,
+                scheduleId
+        );
+    }
+
+    public void deleteScheduleItem(Long scheduleId) {
+        jdbcTemplate.update(
+                DELETE_SCHEDULE_ITEM,
                 scheduleId
         );
     }

@@ -97,6 +97,16 @@ const SchedulePage = () => {
         setItem(item)
     }
 
+    const handleDeleteButton = (item) => {
+        ajax('/api/schedule/delete/' + item.scheduleId, {}, 'post')
+            .then(res => {
+                console.log(res)
+                onCancel()
+                loadSchedule()
+            })
+            .catch(err => console.log(err))
+    }
+
     const onCancel = () => {
         setMode(undefined);
         setItem({})
@@ -196,8 +206,10 @@ const SchedulePage = () => {
                                  day={day}
                                  key={day}
                                  handleEditClick={handleEditButton}
+                                 handleDeleteClick={handleDeleteButton}
                                  possibilities={possibilities ? possibilities[index] : undefined}
                                  handleAssign={(pair) => handleAssign(day, pair)}
+
                         />
                     )}
                 </Grid>

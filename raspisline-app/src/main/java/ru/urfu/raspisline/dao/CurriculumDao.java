@@ -27,6 +27,14 @@ public class CurriculumDao {
             "         join teacher t on t.id = c.teacher  " +
             "where student_group = ?";
 
+    //language=PostgreSQL
+    private final static String GET_CURRICULUM_ITEMS_FOR_TEACHER = "" +
+            "select c.id, c.student_group, c.discipline, c.lesson_type, t.id as teacher_id, t.full_name  " +
+            "from curriculum c  " +
+            "         join teacher t on t.id = c.teacher  " +
+            "where t.id = ?";
+
+
     private final JdbcTemplate jdbcTemplate;
 
     public CurriculumDao(final JdbcTemplate jdbcTemplate) {
@@ -65,6 +73,24 @@ public class CurriculumDao {
                         )
                 ),
                 groupName
+
+        );
+    }
+
+    public List<CurriculumItemForSchedule> getAllCurriculumItemsForTeacher(Long teacherId) {
+        return jdbcTemplate.query(
+                GET_CURRICULUM_ITEMS_FOR_TEACHER,
+                (rs, rowNum) -> new CurriculumItemForSchedule(
+                        rs.getLong("id"),
+                        rs.getString("student_group"),
+                        rs.getString("discipline"),
+                        rs.getString("lesson_type"),
+                        new Teacher(
+                                rs.getLong("teacher_id"),
+                                rs.getString("full_name")
+                        )
+                ),
+                teacherId
 
         );
     }

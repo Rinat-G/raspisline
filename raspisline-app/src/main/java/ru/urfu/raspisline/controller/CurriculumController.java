@@ -29,12 +29,17 @@ public class CurriculumController {
     }
 
     @GetMapping
-    public List<CurriculumItem> getCurriculum(){
+    public List<CurriculumItem> getCurriculum() {
         return curriculumDao.getAllCurriculumItemsWithTeacherName();
     }
 
     @GetMapping(value = "/group/{name}")
-    public List<CurriculumItemForSchedule> getCurriculumForGroup(@PathVariable String name){
+    public List<CurriculumItemForSchedule> getCurriculumForGroup(@PathVariable String name) {
         return curriculumDao.getAllCurriculumItemsForGroup(name);
+    }
+
+    @GetMapping(value = "/teacher/{id}")
+    public List<CurriculumItemForSchedule> getCurriculumForTeacher(@PathVariable Long id) {
+        return curriculumDao.getAllCurriculumItemsForTeacher(id);
     }
 }

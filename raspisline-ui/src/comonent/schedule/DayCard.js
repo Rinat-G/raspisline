@@ -14,10 +14,10 @@ import {
 } from "@material-ui/core";
 import * as PropTypes from 'prop-types';
 import Moment from "moment";
-import EditIcon from '@material-ui/icons/Edit';
 import {ThemeProvider} from '@material-ui/core/styles';
 import {green, orange} from "@material-ui/core/colors";
 import {ITEM} from "../../utils/PropTypes";
+import ItemMenu from "./ItemMenu";
 
 const useStyles = makeStyles(() => ({
     cell: {
@@ -37,6 +37,7 @@ const assignButtonTheme = createMuiTheme({
 
 const DayCard = (props) => {
     const classes = useStyles();
+
 
     const renderAssignButton = (idx) => {
         if (props.possibilities && props.possibilities[idx]) {
@@ -89,12 +90,8 @@ const DayCard = (props) => {
                         {(item.group || item.teacher.fullName)}
                     </TableCell>
                     <TableCell className={classes.cell}>
-                        <Button variant={"contained"}
-                                size={"small"}
-                                style={{minWidth: '1px', paddingLeft: '4px', paddingRight: '4px'}}
-                                onClick={() => props.handleEditClick(item)}>
-                            <EditIcon fontSize={"small"}/>
-                        </Button>
+                        <ItemMenu handleEditClick={() => props.handleEditClick(item)}
+                                  handleDeleteClick={() => props.handleDeleteClick(item)}/>
                     </TableCell>
                 </React.Fragment>
             )
@@ -139,6 +136,7 @@ DayCard.propTypes = {
     items: PropTypes.arrayOf(ITEM),
     day: PropTypes.instanceOf(Moment),
     handleEditClick: PropTypes.func,
+    handleDeleteClick: PropTypes.func,
     possibilities: PropTypes.arrayOf(PropTypes.shape({
         possibility: PropTypes.oneOf(["GREEN", "YELLOW", "RED"]),
         cause: PropTypes.string
