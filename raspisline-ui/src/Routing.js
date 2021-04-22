@@ -1,5 +1,5 @@
 import React from 'react'
-import {BrowserRouter, Route, Switch} from "react-router-dom";
+import {BrowserRouter, HashRouter, Route, Switch} from "react-router-dom";
 import MainPage from "./pages/MainPage";
 import CathedraEmployeePage from "./pages/CathedralEmployeePage";
 import DeaneryEmployeePage from "./pages/DeaneryEmployeePage";
@@ -14,7 +14,7 @@ const Routing = () => {
 
     return (
         <Box>
-            <BrowserRouter>
+            <HashRouter>
                 <AppHeader/>
                 <Switch>
                     <Route path="/cathedra">
@@ -47,7 +47,7 @@ const Routing = () => {
                         <MainPage/>
                     </Route>
                 </Switch>
-            </BrowserRouter>
+            </HashRouter>
         </Box>
     )
 
